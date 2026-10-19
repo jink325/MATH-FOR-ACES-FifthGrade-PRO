@@ -1,0 +1,1041 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>因數獵人｜Factor Hunter</title>
+
+<style>
+:root {
+  --bg:#080d1b;
+  --panel:#111b32;
+  --cyan:#45e6ff;
+  --purple:#9b7bff;
+  --green:#49f5ad;
+  --red:#ff6384;
+  --text:#edf5ff;
+  --muted:#a4b4d1;
+  --line:#2b3c60;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  color:var(--text);
+  font-family:system-ui,-apple-system,"Microsoft JhengHei",sans-serif;
+  background:
+    radial-gradient(ellipse at 15% 0%,#192e57 0,transparent 42%),
+    radial-gradient(ellipse at 90% 20%,#25164d 0,transparent 35%),
+    var(--bg);
+  min-height:100vh;
+}
+button,select { font:inherit; }
+button { cursor:pointer; }
+button:focus-visible,select:focus-visible {
+  outline:3px solid white;
+  outline-offset:3px;
+}
+header {
+  padding:24px 16px 18px;
+  text-align:center;
+  border-bottom:1px solid var(--line);
+  background:#080d1bd9;
+}
+.eyebrow {
+  color:var(--cyan);
+  letter-spacing:4px;
+  font-size:.75rem;
+  font-weight:800;
+}
+h1 {
+  margin:7px 0 4px;
+  font-size:clamp(2rem,5vw,3.2rem);
+  letter-spacing:2px;
+  text-shadow:0 0 22px #45e6ff66;
+}
+h1 span { color:var(--cyan); }
+.subtitle { color:var(--muted); font-size:.92rem; }
+main { width:min(1100px,94%); margin:22px auto 40px; }
+.topbar {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:16px;
+}
+.stat,.panel {
+  background:linear-gradient(145deg,#14213b,#0d162b);
+  border:1px solid var(--line);
+  border-radius:15px;
+  box-shadow:0 8px 30px #0002;
+}
+.stat { padding:13px; text-align:center; }
+.stat-label { font-size:.78rem; color:var(--muted); }
+.stat-value { font-size:1.35rem; font-weight:900; margin-top:3px; }
+#timer { color:var(--cyan); }
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px 17px;
+  margin-bottom:16px;
+}
+.control-group { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+label { color:var(--muted); font-size:.9rem; }
+select {
+  color:var(--text);
+  background:#0b1428;
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:9px 12px;
+}
+.btn {
+  border:1px solid #456080;
+  background:#1a2947;
+  color:var(--text);
+  border-radius:10px;
+  padding:10px 15px;
+  font-weight:800;
+  transition:transform .15s,border-color .15s;
+}
+.btn:hover:not(:disabled) { transform:translateY(-1px); border-color:var(--cyan); }
+.btn:disabled { opacity:.45; cursor:not-allowed; }
+.btn-primary {
+  color:#06111c;
+  background:linear-gradient(100deg,var(--cyan),#91f4ff);
+  border:0;
+  box-shadow:0 0 20px #45e6ff2a;
+}
+.btn-purple { background:linear-gradient(100deg,#7254e8,#a58bff); border:0; }
+.btn-green { background:linear-gradient(100deg,#27bd8b,var(--green)); color:#061b16; border:0; }
+.steps { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0; }
+.step {
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:13px;
+  color:var(--muted);
+  background:#0c1427;
+  text-align:center;
+  font-weight:800;
+}
+.step.active { border-color:var(--cyan); color:var(--cyan); background:#10243a; }
+.step.done { border-color:#278f70; color:var(--green); }
+.panel { padding:20px; margin-bottom:16px; }
+.panel h2 { margin:0 0 8px; font-size:1.25rem; }
+.instructions { color:var(--muted); line-height:1.8; margin:4px 0 16px; }
+.target-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+.target-card {
+  min-width:0;
+  background:#0a1327;
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:15px;
+}
+.target-title {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+  font-weight:900;
+}
+.target-letter { color:var(--cyan); font-size:1.1rem; }
+.target-number { font-size:2rem; color:white; }
+.number-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px; }
+.num {
+  min-width:0;
+  aspect-ratio:1.15;
+  border-radius:8px;
+  border:1px solid #304366;
+  background:#14213b;
+  color:var(--text);
+  font-weight:800;
+  font-size:clamp(.8rem,2.2vw,1rem);
+  padding:4px;
+}
+.num:hover:not(:disabled) { border-color:var(--cyan); background:#1a3150; }
+.num.selected {
+  border:2px solid var(--cyan);
+  background:#123e55;
+  color:#fff;
+  box-shadow:inset 0 0 12px #45e6ff28;
+}
+.num.selected::after { content:" ✓"; color:var(--cyan); }
+.num.correct { border-color:var(--green); background:#123c32; }
+.num.wrong { border-color:var(--red); background:#492239; }
+.num:disabled { cursor:default; opacity:1; }
+.legend { font-size:.8rem; color:var(--muted); margin-top:10px; }
+.feedback {
+  display:none;
+  padding:14px 16px;
+  border-radius:11px;
+  margin:14px 0;
+  line-height:1.8;
+  white-space:pre-line;
+}
+.feedback.show { display:block; }
+.feedback.info { background:#102641; border:1px solid #3578ad; }
+.feedback.good { background:#10352d; border:1px solid #278f70; }
+.feedback.bad { background:#3b1b2a; border:1px solid #a94362; }
+.actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.hidden { display:none !important; }
+.common-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:9px; }
+.common-grid .num { aspect-ratio:1.5; font-size:1.05rem; }
+.comparison-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:14px 0 18px;
+}
+.comparison-card {
+  min-width:0;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#0a1327;
+}
+.comparison-card.a-card { border-top:3px solid var(--cyan); }
+.comparison-card.b-card { border-top:3px solid var(--purple); }
+.comparison-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:10px;
+  font-weight:900;
+}
+.comparison-letter { font-size:1.05rem; }
+.a-card .comparison-letter { color:var(--cyan); }
+.b-card .comparison-letter { color:var(--purple); }
+.comparison-target { font-size:1.4rem; color:white; }
+.factor-chips {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  min-height:38px;
+}
+.factor-chip {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  min-height:34px;
+  padding:5px 9px;
+  border:1px solid #40516f;
+  border-radius:8px;
+  background:#17243d;
+  color:var(--text);
+  font-weight:800;
+}
+.comparison-note { color:var(--muted); font-size:.82rem; line-height:1.6; margin-top:9px; }
+.result-card {
+  border:1px solid var(--line);
+  background:#0a1327;
+  border-radius:12px;
+  padding:17px;
+  margin-top:14px;
+  line-height:1.9;
+}
+.result-number { font-size:2rem; color:var(--green); font-weight:900; }
+.tip {
+  border-left:3px solid var(--purple);
+  padding:10px 13px;
+  color:#d9d0ff;
+  background:#1b1834;
+  border-radius:0 8px 8px 0;
+  line-height:1.8;
+  margin-top:15px;
+}
+.footer { text-align:center; color:#6f82a6; font-size:.8rem; margin-top:22px; }
+#startScreen {
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:#080d1bf5;
+}
+.start-card {
+  max-width:540px;
+  width:100%;
+  padding:28px;
+  border:1px solid var(--cyan);
+  border-radius:18px;
+  background:#111b32;
+  text-align:center;
+  box-shadow:0 0 35px #45e6ff22;
+}
+.start-card p { color:var(--muted); line-height:1.9; }
+.start-card ul { text-align:left; color:var(--muted); line-height:2; padding-left:24px; }
+#pauseBanner {
+  display:none;
+  border:1px solid var(--purple);
+  color:#d9d0ff;
+  background:#1b1834;
+  border-radius:10px;
+  padding:10px 14px;
+  margin-bottom:14px;
+  text-align:center;
+  font-weight:800;
+}
+#pauseBanner.show { display:block; }
+@media(max-width:650px) {
+  main { width:94%; margin-top:14px; }
+  .topbar { gap:7px; }
+  .stat { padding:10px 5px; }
+  .stat-value { font-size:1.15rem; }
+  .controls { align-items:flex-start; }
+  .target-grid { grid-template-columns:1fr; }
+  .panel { padding:14px; }
+  .number-grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; }
+  .num { aspect-ratio:1.25; }
+  .common-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .comparison-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 遊戲準備畫面 -->
+<div id="startScreen">
+  <div class="start-card">
+    <div class="eyebrow">MATH MISSION</div>
+    <h1>因數<span>獵人</span></h1>
+    <p>準備好接受數學挑戰了嗎？</p>
+    <ul>
+      <li>第一關：找出 A、B 的所有因數。</li>
+      <li>第二關：從候選數字中找出公因數。</li>
+      <li>檢查答案時會暫停計時，讓你安心思考。</li>
+      <li>請仔細判斷，不要急著猜答案！</li>
+    </ul>
+    <div class="control-group" style="justify-content:center;margin:16px 0">
+      <label for="startDifficulty">選擇難度</label>
+      <select id="startDifficulty">
+        <option value="easy">簡單｜150 秒</option>
+        <option value="normal" selected>中等｜130 秒</option>
+        <option value="hard">困難｜110 秒</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="startBtn" style="width:100%;margin-top:8px">
+      開始挑戰
+    </button>
+  </div>
+</div>
+
+<header>
+  <div class="eyebrow">MATH MISSION · GRADE 5</div>
+  <h1>因數<span>獵人</span></h1>
+  <div class="subtitle">FACTOR HUNTER｜找因數、辨公因數、挑戰最大公因數</div>
+</header>
+
+<main>
+  <section class="topbar">
+    <div class="stat">
+      <div class="stat-label">目前分數 SCORE</div>
+      <div class="stat-value" id="score">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">剩餘時間 TIME</div>
+      <div class="stat-value" id="timer">130 秒</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">完成題數 CLEARED</div>
+      <div class="stat-value" id="cleared">0</div>
+    </div>
+  </section>
+
+  <section class="panel controls">
+    <div class="control-group">
+      <label for="difficulty">挑戰難度</label>
+      <select id="difficulty">
+        <option value="easy">簡單｜150 秒</option>
+        <option value="normal" selected>中等｜130 秒</option>
+        <option value="hard">困難｜110 秒</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <button class="btn" id="restartBtn">重新開始</button>
+      <button class="btn btn-purple" id="newBtn">換一組數字</button>
+    </div>
+  </section>
+
+  <div id="pauseBanner">⏸ 計時已暫停：請安心檢查與思考</div>
+
+  <div class="steps">
+    <div class="step active" id="step1">01｜尋找因數</div>
+    <div class="step" id="step2">02｜挑戰公因數</div>
+  </div>
+
+  <section class="panel" id="stage1">
+    <h2>第一關：找出兩個數的因數</h2>
+    <p class="instructions">
+      請分別找出 A、B 的所有因數。能整除目標數字、沒有餘數的數，就是因數。
+      選取數字後按「檢查因數」。數字由小到大排列，選取後不會移動。
+    </p>
+
+    <div class="target-grid">
+      <div class="target-card">
+        <div class="target-title">
+          <span><span class="target-letter">A</span> 目標數字</span>
+          <span class="target-number" id="targetA">12</span>
+        </div>
+        <div class="number-grid" id="gridA"></div>
+        <div class="legend">點擊選取，再點一次即可取消。</div>
+      </div>
+      <div class="target-card">
+        <div class="target-title">
+          <span><span class="target-letter">B</span> 目標數字</span>
+          <span class="target-number" id="targetB">18</span>
+        </div>
+        <div class="number-grid" id="gridB"></div>
+        <div class="legend">請獨立判斷 B 的所有因數。</div>
+      </div>
+    </div>
+
+    <div class="feedback" id="factorFeedback" role="status" aria-live="polite"></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="checkFactorsBtn">檢查因數</button>
+      <button class="btn btn-green hidden" id="resumeFactorBtn">繼續計時</button>
+      <button class="btn btn-purple hidden" id="goCommonBtn">前往第二關</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="stage2">
+    <h2>第二關：找出共同的因數</h2>
+    <p class="instructions">
+      請從下方候選數字中，選出同時是 A 和 B 因數的數字。
+      候選數字是第一關兩組因數合併後的結果，並不是每個數字都是公因數。
+    </p>
+    <div class="comparison-grid" aria-label="第一關已選因數比較">
+      <div class="comparison-card a-card">
+        <div class="comparison-heading">
+          <span><span class="comparison-letter">A</span> 數的已選因數</span>
+          <span class="comparison-target" id="compareAValue">12</span>
+        </div>
+        <div class="factor-chips" id="compareAFactors"></div>
+        <div class="comparison-note">對照這份清單，思考哪些數字也出現在 B 的清單中。</div>
+      </div>
+      <div class="comparison-card b-card">
+        <div class="comparison-heading">
+          <span><span class="comparison-letter">B</span> 數的已選因數</span>
+          <span class="comparison-target" id="compareBValue">18</span>
+        </div>
+        <div class="factor-chips" id="compareBFactors"></div>
+        <div class="comparison-note">這裡只呈現你在第一關選出的數字，不會提示哪些是公因數。</div>
+      </div>
+    </div>
+    <h3 style="margin:10px 0 8px">選出公因數</h3>
+    <p class="instructions">下方是兩份清單合併後、不重複的候選數字。請自行比對上方 A、B 清單，再點選你認為同時出現的數字。</p>
+    <div class="common-grid" id="commonGrid"></div>
+    <div class="legend">上方清單不會標記重複項目；請自行比較後作答。</div>
+    <div class="feedback" id="commonFeedback" role="status" aria-live="polite"></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="checkCommonBtn">檢查公因數</button>
+      <button class="btn btn-green hidden" id="resumeCommonBtn">繼續計時</button>
+      <button class="btn" id="backBtn">返回第一關</button>
+    </div>
+    <div class="result-card hidden" id="finalResult"></div>
+  </section>
+
+  <section class="panel">
+    <h2>獵人任務提示</h2>
+    <div class="tip">
+      <strong>因數：</strong>能將一個數整除且沒有餘數的數。<br>
+      <strong>公因數：</strong>同時是兩個數因數的數。<br>
+      <strong>最大公因數：</strong>所有公因數中最大的數，可以幫助我們進行分數約分。
+    </div>
+  </section>
+
+  <div class="footer">FACTOR HUNTER · THINK CLEARLY · FIND EVERY FACTOR</div>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  const settings = {
+    easy:   { time:150, points:10 },
+    normal: { time:130, points:12 },
+    hard:   { time:110, points:14 }
+  };
+
+  let A = 12, B = 18;
+  let selectedA = new Set();
+  let selectedB = new Set();
+  let selectedCommon = new Set();
+
+  let stage = 1;
+  let score = 0;
+  let cleared = 0;
+  let timeLeft = settings.normal.time;
+  let timerId = null;
+
+  let started = false;
+  let running = false;
+  let ended = false;
+  let paused = false;
+  let factorPassed = false;
+  let commonPassed = false;
+  let currentDifficulty = "normal";
+
+  function factors(n) {
+    const result = [];
+    for (let i = 1; i <= n; i++) {
+      if (n % i === 0) result.push(i);
+    }
+    return result;
+  }
+
+  function gcd(x, y) {
+    while (y !== 0) {
+      const remainder = x % y;
+      x = y;
+      y = remainder;
+    }
+    return x;
+  }
+
+  function sameSet(chosen, answers) {
+    return chosen.size === answers.length &&
+      answers.every(n => chosen.has(n));
+  }
+
+  function sortedUnion(one, two) {
+    return [...new Set([...one, ...two])].sort((x,y) => x-y);
+  }
+
+  function showFeedback(id, type, message) {
+    const el = $(id);
+    el.className = "feedback show " + type;
+    el.textContent = message;
+  }
+
+  function clearFeedback(id) {
+    const el = $(id);
+    el.className = "feedback";
+    el.textContent = "";
+  }
+
+  function updateStats() {
+    $("score").textContent = score;
+    $("cleared").textContent = cleared;
+    $("timer").textContent = timeLeft + " 秒";
+    $("timer").style.color = timeLeft <= 20 ? "var(--red)" : "var(--cyan)";
+    $("pauseBanner").classList.toggle("show", paused && started && !ended);
+  }
+
+  function updateSteps() {
+    $("step1").className = "step" + (stage === 1 ? " active" : "");
+    $("step2").className = "step" + (stage === 2 ? " active" : "");
+    if (factorPassed) $("step1").classList.add("done");
+    if (commonPassed) $("step2").classList.add("done");
+  }
+
+  function renderFactorGrid(gridId, target, chosen) {
+    const grid = $(gridId);
+    grid.replaceChildren();
+
+    for (let n = 1; n <= target; n++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "num" + (chosen.has(n) ? " selected" : "");
+      btn.textContent = n;
+      btn.setAttribute("aria-pressed", String(chosen.has(n)));
+      btn.disabled = !started || ended || factorPassed;
+
+      btn.addEventListener("click", () => {
+        if (!started || ended || factorPassed) return;
+
+        if (chosen.has(n)) chosen.delete(n);
+        else chosen.add(n);
+
+        renderFactorGrid(gridId, target, chosen);
+        clearFeedback("factorFeedback");
+        updateStats();
+      });
+
+      grid.appendChild(btn);
+    }
+  }
+
+  function renderComparisonList(targetId, listId, target, chosen) {
+    $(targetId).textContent = target;
+    const list = $(listId);
+    list.replaceChildren();
+
+    const values = [...chosen].sort((x, y) => x - y);
+    if (values.length === 0) {
+      const empty = document.createElement("span");
+      empty.className = "comparison-note";
+      empty.textContent = "目前沒有已選因數";
+      list.appendChild(empty);
+      return;
+    }
+
+    values.forEach(n => {
+      const chip = document.createElement("span");
+      chip.className = "factor-chip";
+      chip.textContent = n;
+      list.appendChild(chip);
+    });
+  }
+
+  function renderComparison() {
+    renderComparisonList("compareAValue", "compareAFactors", A, selectedA);
+    renderComparisonList("compareBValue", "compareBFactors", B, selectedB);
+  }
+
+  function renderCommonGrid() {
+    const grid = $("commonGrid");
+    grid.replaceChildren();
+
+    const candidates = sortedUnion(selectedA, selectedB);
+
+    candidates.forEach(n => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "num" + (selectedCommon.has(n) ? " selected" : "");
+      btn.textContent = n;
+      btn.setAttribute("aria-pressed", String(selectedCommon.has(n)));
+      btn.disabled = !started || ended || commonPassed;
+
+      btn.addEventListener("click", () => {
+        if (!started || ended || commonPassed) return;
+
+        if (selectedCommon.has(n)) selectedCommon.delete(n);
+        else selectedCommon.add(n);
+
+        renderCommonGrid();
+        clearFeedback("commonFeedback");
+      });
+
+      grid.appendChild(btn);
+    });
+  }
+
+  function render() {
+    updateStats();
+    updateSteps();
+
+    $("stage1").classList.toggle("hidden", stage !== 1);
+    $("stage2").classList.toggle("hidden", stage !== 2);
+
+    $("targetA").textContent = A;
+    $("targetB").textContent = B;
+
+    renderFactorGrid("gridA", A, selectedA);
+    renderFactorGrid("gridB", B, selectedB);
+    renderComparison();
+    renderCommonGrid();
+
+    $("checkFactorsBtn").disabled =
+      !started || ended || paused || factorPassed;
+
+    $("checkCommonBtn").disabled =
+      !started || ended || paused || commonPassed;
+
+    $("resumeFactorBtn").classList.toggle(
+      "hidden", !(paused && stage === 1 && !factorPassed)
+    );
+    $("resumeCommonBtn").classList.toggle(
+      "hidden", !(paused && stage === 2 && !commonPassed)
+    );
+
+    $("goCommonBtn").classList.toggle(
+      "hidden", !(paused && stage === 1 && factorPassed && !ended)
+    );
+
+    $("backBtn").disabled = !started || ended || commonPassed;
+    $("newBtn").disabled = !started || ended;
+    $("difficulty").disabled = started && !ended;
+  }
+
+  function stopTimer() {
+    if (timerId !== null) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+  }
+
+  function startTimer() {
+    stopTimer();
+    if (!started || ended || paused) return;
+
+    running = true;
+    timerId = setInterval(() => {
+      if (!running || paused || ended) return;
+
+      timeLeft--;
+      updateStats();
+
+      if (timeLeft <= 0) finishGame();
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    paused = true;
+    running = false;
+    stopTimer();
+    render();
+  }
+
+  function resumeTimer() {
+    if (!started || ended) return;
+
+    paused = false;
+    running = true;
+    render();
+    startTimer();
+  }
+
+  function finishGame() {
+    stopTimer();
+    running = false;
+    paused = false;
+    ended = true;
+
+    render();
+
+    if (stage === 1) {
+      showFeedback(
+        "factorFeedback",
+        "bad",
+        "時間到！本次挑戰結束。按「重新開始」即可再次挑戰。"
+      );
+    } else {
+      showFeedback(
+        "commonFeedback",
+        "bad",
+        "時間到！本次挑戰結束。按「重新開始」即可再次挑戰。"
+      );
+    }
+
+    render();
+  }
+
+  function award(points) {
+    score += points;
+    updateStats();
+  }
+
+  // 只回報數量，不顯示任何漏選或誤選的數字。
+  function checkFactors() {
+    if (!started || ended || paused || factorPassed) return;
+
+    pauseTimer();
+
+    const ansA = factors(A);
+    const ansB = factors(B);
+
+    const missingA = ansA.filter(n => !selectedA.has(n)).length;
+    const wrongA = [...selectedA].filter(n => !ansA.includes(n)).length;
+    const missingB = ansB.filter(n => !selectedB.has(n)).length;
+    const wrongB = [...selectedB].filter(n => !ansB.includes(n)).length;
+
+    const totalMissing = missingA + missingB;
+    const totalWrong = wrongA + wrongB;
+
+    if (totalMissing === 0 && totalWrong === 0) {
+      factorPassed = true;
+
+      const points = settings[currentDifficulty].points;
+      award(points);
+      timeLeft = Math.min(settings[currentDifficulty].time, timeLeft + 8);
+
+      showFeedback(
+        "factorFeedback",
+        "good",
+        `太好了！A、B 的因數都找對了！\n獲得 ${points} 分，並獎勵 8 秒。\n計時已暫停，準備好後按「前往第二關」。`
+      );
+    } else {
+      const messages = [];
+
+      if (totalMissing > 0) {
+        messages.push(`你還有 ${totalMissing} 個因數尚未找到。`);
+      }
+      if (totalWrong > 0) {
+        messages.push(`你有 ${totalWrong} 個選擇需要重新確認。`);
+      }
+
+      messages.push("系統不會直接公布答案，請自己重新檢查與思考。");
+
+      showFeedback("factorFeedback", "info", messages.join("\n"));
+    }
+
+    render();
+  }
+
+  function goToCommonStage() {
+    if (!factorPassed || ended) return;
+
+    stage = 2;
+    paused = true;
+    running = false;
+    stopTimer();
+
+    selectedCommon = new Set();
+
+    clearFeedback("commonFeedback");
+    $("finalResult").classList.add("hidden");
+    $("finalResult").replaceChildren();
+
+    render();
+    showFeedback(
+      "commonFeedback",
+      "info",
+      "第二關準備好了！請選出同時是 A 和 B 因數的數字。\n計時目前暫停，按「繼續計時」後才會開始倒數。"
+    );
+    render();
+  }
+
+  function checkCommon() {
+    if (!started || ended || paused || commonPassed) return;
+
+    pauseTimer();
+
+    const ansA = factors(A);
+    const ansB = factors(B);
+    const correct = ansA.filter(n => ansB.includes(n));
+
+    const missing = correct.filter(n => !selectedCommon.has(n)).length;
+    const wrong = [...selectedCommon].filter(n => !correct.includes(n)).length;
+
+    if (missing === 0 && wrong === 0) {
+      commonPassed = true;
+
+      const points = settings[currentDifficulty].points;
+      award(points);
+      timeLeft = Math.min(settings[currentDifficulty].time, timeLeft + 8);
+      cleared++;
+
+      showFeedback(
+        "commonFeedback",
+        "good",
+        `完全正確！你找到了全部公因數。\n獲得 ${points} 分，並獎勵 8 秒。\n計時已暫停，請看看下方的學習整理。`
+      );
+
+      showFinalResult(correct);
+    } else {
+      const messages = [];
+
+      if (missing > 0) {
+        messages.push(`你還有 ${missing} 個公因數尚未找到。`);
+      }
+      if (wrong > 0) {
+        messages.push(`你有 ${wrong} 個選擇需要重新確認。`);
+      }
+
+      messages.push("想一想：這個數字是否能同時整除 A 和 B？");
+
+      showFeedback("commonFeedback", "info", messages.join("\n"));
+    }
+
+    render();
+  }
+
+  function showFinalResult(correct) {
+    const g = gcd(A, B);
+    const box = $("finalResult");
+
+    box.classList.remove("hidden");
+    box.replaceChildren();
+
+    const heading = document.createElement("h3");
+    heading.textContent = "任務完成！學習成果整理";
+    box.appendChild(heading);
+
+    const factorsText = document.createElement("p");
+    factorsText.textContent = "本題的公因數：" + correct.join("、");
+    box.appendChild(factorsText);
+
+    const label = document.createElement("div");
+    label.textContent = "最大公因數";
+    box.appendChild(label);
+
+    const value = document.createElement("div");
+    value.className = "result-number";
+    value.textContent = g;
+    box.appendChild(value);
+
+    const tip = document.createElement("div");
+    tip.className = "tip";
+    tip.innerHTML =
+      "<strong>連結分數約分：</strong><br>" +
+      "如果 A、B 分別是分數的分子和分母，" +
+      "就可以利用共同的因數同時除兩者。<br>" +
+      "最大公因數可以幫助我們直接約分到最簡分數。";
+    box.appendChild(tip);
+
+    const reflection = document.createElement("p");
+    reflection.textContent =
+      "思考一下：如果這兩個數是分數的分子和分母，你會如何利用最大公因數約分？";
+    box.appendChild(reflection);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const next = document.createElement("button");
+    next.className = "btn btn-primary";
+    next.textContent = "下一題";
+    next.addEventListener("click", newRound);
+
+    actions.appendChild(next);
+    box.appendChild(actions);
+  }
+
+  function generatePair() {
+    let x, y, attempts = 0;
+
+    do {
+      x = 2 + Math.floor(Math.random() * 99);
+      y = 2 + Math.floor(Math.random() * 99);
+      attempts++;
+    } while ((x === y || gcd(x, y) < 2) && attempts < 1000);
+
+    if (x === y || gcd(x, y) < 2) {
+      x = 24;
+      y = 36;
+    }
+
+    return [x, y];
+  }
+
+  function newRound() {
+    if (ended) return;
+
+    [A, B] = generatePair();
+
+    selectedA = new Set();
+    selectedB = new Set();
+    selectedCommon = new Set();
+
+    stage = 1;
+    factorPassed = false;
+    commonPassed = false;
+    paused = true;
+    running = false;
+    stopTimer();
+    clearFeedback("factorFeedback");
+    clearFeedback("commonFeedback");
+
+    $("finalResult").classList.add("hidden");
+    $("finalResult").replaceChildren();
+
+    render();
+
+    showFeedback(
+      "factorFeedback",
+      "info",
+      "新題目已準備好。按「繼續計時」後開始作答。"
+    );
+  }
+
+  function startGame() {
+    currentDifficulty = $("startDifficulty").value;
+    $("difficulty").value = currentDifficulty;
+
+    timeLeft = settings[currentDifficulty].time;
+    started = true;
+    ended = false;
+    paused = false;
+    running = true;
+
+    $("startScreen").classList.add("hidden");
+
+    render();
+    startTimer();
+  }
+
+  function resetGame() {
+    stopTimer();
+
+    score = 0;
+    cleared = 0;
+    started = false;
+    running = false;
+    paused = false;
+    ended = false;
+    stage = 1;
+    factorPassed = false;
+    commonPassed = false;
+
+    currentDifficulty = $("startDifficulty").value;
+    timeLeft = settings[currentDifficulty].time;
+
+    [A, B] = [12, 18];
+
+    selectedA = new Set();
+    selectedB = new Set();
+    selectedCommon = new Set();
+
+    clearFeedback("factorFeedback");
+    clearFeedback("commonFeedback");
+
+    $("finalResult").classList.add("hidden");
+    $("finalResult").replaceChildren();
+
+    $("startScreen").classList.remove("hidden");
+
+    render();
+  }
+
+  $("startBtn").addEventListener("click", startGame);
+
+  $("checkFactorsBtn").addEventListener("click", checkFactors);
+  $("checkCommonBtn").addEventListener("click", checkCommon);
+
+  $("resumeFactorBtn").addEventListener("click", resumeTimer);
+  $("resumeCommonBtn").addEventListener("click", resumeTimer);
+
+  $("goCommonBtn").addEventListener("click", goToCommonStage);
+
+  $("backBtn").addEventListener("click", () => {
+    if (!started || ended || commonPassed) return;
+
+    stage = 1;
+    factorPassed = false;
+    paused = true;
+    running = false;
+    stopTimer();
+
+    clearFeedback("factorFeedback");
+    clearFeedback("commonFeedback");
+
+    render();
+
+    showFeedback(
+      "factorFeedback",
+      "info",
+      "已返回第一關。你可以調整選擇並重新檢查，完成後再前往第二關。"
+    );
+    render();
+  });
+
+  $("restartBtn").addEventListener("click", resetGame);
+
+  $("newBtn").addEventListener("click", () => {
+    if (!started || ended) return;
+    newRound();
+  });
+
+  $("difficulty").addEventListener("change", () => {
+    if (started && !ended) return;
+
+    currentDifficulty = $("difficulty").value;
+    $("startDifficulty").value = currentDifficulty;
+    timeLeft = settings[currentDifficulty].time;
+    updateStats();
+  });
+
+  // 載入網頁時只顯示準備畫面，不啟動計時。
+  render();
+})();
+</script>
+</body>
+</html>
